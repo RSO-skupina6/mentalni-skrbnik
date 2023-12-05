@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-auth
+  template:
+    metadata:
+      labels:
+        app: flask-auth
+    spec:
+      containers:
+      - name: flask-auth-container
+        image: gcr.io/semiotic-garden-407210/mentalni-skrbnik-auth:latest
+        env:
+        - name: DB_UNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-user
+              key: db-username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: db-pass
+              key: db-password
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-host
+              key: db-host
+        ports:
+        - containerPort: 5000
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-auth-service
+spec:
+  selector:
+    app: flask-auth
+  ports:
+  - protocol: TCP
+    port: 6734
+    targetPort: 5000
+  type: LoadBalancer
