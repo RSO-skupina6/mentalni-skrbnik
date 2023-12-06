@@ -14,7 +14,8 @@
     GET /listonlineusers
 
 ### web endpoint:
-
+    GET /user-info
+    GET /list-users
 
 ### seznam do github repozitorijev:
     - https://github.com/RSO-skupina6/mentalni-skrbnik

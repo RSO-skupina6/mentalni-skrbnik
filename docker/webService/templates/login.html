@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username"><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password"><br><br>
+        <button type="submit">Login</button>
+    </form>
+    <p id="loginResult"></p>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', loginUser);
+
+        function loginUser(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch('/login', { 
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Extract JSON data
+                } else {
+                    throw new Error('Login failed');
+                }
+            })
+            .then(data => {
+                const token = data.token;
+                if (token) {
+                    sessionStorage.setItem('authToken', token); // Store the token
+                    window.location.href = '/dashboard'; // Redirect to the dashboard
+                } else {
+                    console.error('Token not found in response');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

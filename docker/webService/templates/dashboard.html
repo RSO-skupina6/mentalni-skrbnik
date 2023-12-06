@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        /* Basic styling, modify as needed */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .data-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        .data-card {
+            flex: 1;
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard</h1>
+        <div class="data-container">
+            <div class="data-card" id="dataCard1">
+                <h2>Data 1</h2>
+                <p>Value: <span id="userInfoResult">-</span></p>
+                <button onclick="getUserInfo()">Get User Info</button>
+            </div>
+            <div class="data-card" id="dataCard2">
+                <h2>Data 2</h2>
+                <p>Value: <span id="listOfUsersResult">-</span></p>
+                <button onclick="getListOfUsers()">List Active Users</button>
+            </div>
+            <!-- Add more data cards as needed -->
+        </div>
+    </div>
+    <script>
+        // Fetch data and update dashboard here
+        // Example: Fetch data from API and update values in spans with IDs "dataValue1" and "dataValue2"
+        // Replace this with your actual data retrieval logic
+        // Example using dummy data:
+        function getUserInfo() {
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                // Handle case where token is not available
+                console.error('Token not found');
+                return;
+            }
+
+            fetch('/user-info', {
+                headers: {
+                    'Authorization': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('userInfoResult').innerText = JSON.stringify(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        
+        function getListOfUsers() {
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                // Handle case where token is not available
+                console.error('Token not found');
+                return;
+            }
+
+            fetch('/list-users', {
+                headers: {
+                    'Authorization': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('listOfUsersResult').innerText = JSON.stringify(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

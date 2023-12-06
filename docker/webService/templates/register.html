@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+</head>
+<body>
+    <h1>Register</h1>
+    <form id="registerForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username"><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password"><br><br>
+        <button type="submit">Register</button>
+    </form>
+    <p id="registerResult"></p>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', registerUser);
+
+        function registerUser(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch('/register', { // Web server endpoint
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    console.log(response)
+                    window.location.href = response.url; // Manually redirect
+                } else {
+                    return response.text().then(data => {
+                        document.getElementById('registerResult').innerText = data;
+                        return data;
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
