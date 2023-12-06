@@ -2,7 +2,7 @@
 import hashlib
 import time
 
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
 import mysql.connector
 import os
@@ -39,9 +39,9 @@ class Authentication(Resource):
         hpwd = hashlib.sha512(args['password'].encode()).hexdigest()
         if hpwd == row[1]:
             cookie = hashlib.sha256((args['username']+args['password']+str(time.time())).encode('utf-8')).hexdigest()
-            sessions[args['username']] = cookie
-            return cookie, 201
-        return "incorrect password", 401
+            sessions[cookie] = args['username']
+            return {'message': 'Login Successful', 'token': cookie}, 201
+        return {'message': 'invalid credentials'}, 401
 
 
 class Logout(Resource):
@@ -50,8 +50,8 @@ class Logout(Resource):
         parser.add_argument('id', type=str, required=True)
         parser.add_argument('cookie', type=str, required=True)
         args = parser.parse_args()
-        if args['id'] in sessions and sessions[args['id']] == args['cookie']:
-            del sessions[args['id']]
+        if args['cookie'] in sessions and sessions[args['cookie']] == args['id']:
+            del sessions[args['cookie']]
             return True, 201
         else:
             return False, 401
@@ -64,7 +64,7 @@ class Verify(Resource):
         parser.add_argument('id', type=str, required=True)
         parser.add_argument('cookie', type=str, required=True)
         args = parser.parse_args()
-        return True, 201 if args['id'] in sessions and sessions[args['id']] == args['cookie'] else False, 401
+        return True, 201 if args['cookie'] in sessions and sessions[args['cookie']] == args['id'] else False, 401
 
 
 class Register(Resource):
@@ -85,19 +85,42 @@ class Register(Resource):
         row = cursor.fetchone()
         if row[0] == 1:
             mydb.disconnect()
-            return "account with this username already exists", 401
+            return {'message': 'account with this username already exists'}, 401
         else:
             hpwd = hashlib.sha512(args['password'].encode()).hexdigest()
             cursor.execute(f"INSERT INTO users (username, password, type) VALUES ('{args['username']}', '{hpwd}', 0);")
             mydb.commit()
         mydb.disconnect()
-        return 'Register successful', 201
+        return {'message': 'Register successful'}, 201
+
+
+class UserInfo(Resource):
+    @staticmethod
+    def get():
+        token = request.headers.get('Authorization')
+        if token in sessions.keys():
+            return {'message': 'token matched', 'data': {'user_identification': sessions[token],
+                                                         'more_fields': 'to_come'}}, 200
+        else:
+            return {'message': 'token mismatched, make sure you are logged in'}, 401
+
+
+class ListUsers(Resource):
+    @staticmethod
+    def get():
+        token = request.headers.get('Authorization')
+        if token in sessions.keys():
+            return {'message': 'token matched', 'data': {'active_users': [user for user in sessions.values()]}}, 200
+        else:
+            return {'message': 'token mismatched, make sure you are logged in'}, 401
 
 
 api.add_resource(Authentication, '/auth')
 api.add_resource(Verify, '/verif')
 api.add_resource(Logout, '/logout')
 api.add_resource(Register, '/register')
+api.add_resource(UserInfo, '/userinfo')
+api.add_resource(ListUsers, '/listonlineusers')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
