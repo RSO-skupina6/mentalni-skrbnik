@@ -79,4 +79,5 @@ if __name__ == '__main__':
         except Exception as e:
             rval = 1
             print(e, test, 'failed')
+    print('all tests passed') if rval == 0 else print('Tests failed')
     exit(rval)
