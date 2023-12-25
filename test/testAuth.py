@@ -17,8 +17,7 @@ def register_test():
         'Content-Type': 'application/json'
     }
     response = requests.post(url+'register', data=json.dumps(data), headers=headers)
-    if response.status_code == 401:
-        unregister_test()
+    unregister_test()
     response = requests.post(url + 'register', data=json.dumps(data), headers=headers)
     assert response.status_code == 201
 
