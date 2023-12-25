@@ -1,4 +1,4 @@
 flask
 flask_restful
-mysql-connector
+mysql-connector-python
 requests
