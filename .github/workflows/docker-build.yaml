@@ -16,18 +16,20 @@ jobs:
           - 3306:3306
 
     steps:
-    - name: Set up database
-      run: |
-        mysql -h 127.0.0.1 -P 3306 -u root -proot_password -e "use data; CREATE TABLE users (username VARCHAR(255) NOT NULL PRIMARY KEY, password VARCHAR(2048) NOT NULL, type VARCHAR(50));"
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: docker build auth
+      run: docker build -t mentalni-skrbnik-auth:latest docker/authService
+
+    - name: Set up database
+      run: |
+        mysql -h 127.0.0.1 -P 3306 -u root -proot_password -e "use data; CREATE TABLE users (username VARCHAR(255) NOT NULL PRIMARY KEY, password VARCHAR(2048) NOT NULL, type VARCHAR(50));"
+
     - name: docker build images
       run: |
-        docker build -t mentalni-skrbnik-auth:latest docker/authService
         docker build -t mentalni-skrbnik-web:latest docker/webService
         docker build -t mentalni-skrbnik-msg:latest docker/msgService
-
 
     - name: Run tests
       run: |
