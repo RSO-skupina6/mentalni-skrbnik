@@ -64,7 +64,7 @@ class Verify(Resource):
         parser.add_argument('id', type=str, required=True)
         parser.add_argument('cookie', type=str, required=True)
         args = parser.parse_args()
-        return True, 201 if args['cookie'] in sessions and sessions[args['cookie']] == args['id'] else False, 401
+        return (True, 201) if args['cookie'] in sessions and sessions[args['cookie']] == args['id'] else (False, 401)
 
 
 class Register(Resource):
@@ -81,14 +81,18 @@ class Register(Resource):
             database=secret_database
         )
         cursor = mydb.cursor()
-        cursor.execute(f"SELECT EXISTS(SELECT 1 FROM users WHERE username = '{args['username']}') AS id_exists;")
+        sql = "SELECT EXISTS(SELECT 1 FROM users WHERE username = %s) AS id_exists;"
+        values = (args['username'],)
+        cursor.execute(sql, values)
         row = cursor.fetchone()
         if row[0] == 1:
             mydb.disconnect()
             return {'message': 'account with this username already exists'}, 401
         else:
             hpwd = hashlib.sha512(args['password'].encode()).hexdigest()
-            cursor.execute(f"INSERT INTO users (username, password, type) VALUES ('{args['username']}', '{hpwd}', 0);")
+            sql = "INSERT INTO users (username, password, type) VALUES (%s, %s, %d)"
+            values = (args['username'], hpwd, 0)
+            cursor.execute(sql, values)
             mydb.commit()
         mydb.disconnect()
         return {'message': 'Register successful'}, 201

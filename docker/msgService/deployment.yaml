@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-msg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-msg
+  template:
+    metadata:
+      labels:
+        app: flask-msg
+    spec:
+      containers:
+      - name: flask-msg-container
+        image: gcr.io/semiotic-garden-407210/mentalni-skrbnik-msg:latest
+        env:
+        - name: DB_UNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-user
+              key: db-username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: db-pass
+              key: db-password
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-host
+              key: db-host
+        ports:
+        - containerPort: 4000
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-msg-service
+spec:
+  selector:
+    app: flask-msg
+  ports:
+  - protocol: TCP
+    port: 8573
+    targetPort: 4000
+  type: LoadBalancer
