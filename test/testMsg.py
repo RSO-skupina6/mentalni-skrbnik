@@ -27,14 +27,14 @@ def basic_test():
             }
 
     req = requests.post(urlMsg + 'message', data=json.dumps(data))
-    assert (req.status_code == 200, 'send message return error status')
+    assert req.status_code == 200, 'send message return error status'
 
     headers = {'Content-Type': 'application/json',
                'Authorization': token}
     req = requests.post(urlMsg + 'messages/user1', data=json.dumps(data), headers=headers)
-    assert (req.status_code == 200, 'server returned non ok status code')
+    assert req.status_code == 200, 'server returned non ok status code'
     req = requests.post(urlMsg + 'messages/user2', data=json.dumps(data), headers=headers)
-    assert (req.status_code != 200, 'server returned sensitive data')
+    assert req.status_code != 200, 'server returned sensitive data'
 
 
 if __name__ == '__main__':
