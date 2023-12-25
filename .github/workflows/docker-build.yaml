@@ -27,7 +27,7 @@ jobs:
 
     - name: Set up database
       run: |
-          mysql -h 127.0.0.1 -P 3306 -u root -proot_password -e "CREATE TABLE users (username VARCHAR(255) NOT NULL PRIMARY KEY, password VARCHAR(2048) NOT NULL, type VARCHAR(50));"
+          mysql -h 127.0.0.1 -P 3306 -u root -proot_password -e "create database data; use data; CREATE TABLE users (username VARCHAR(255) NOT NULL PRIMARY KEY, password VARCHAR(2048) NOT NULL, type VARCHAR(50));"
     - name: Run tests
       run: |
         docker run -v ${PWD}/test:/test mentalni-skrbnik-auth:latest -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=localhost python /test/testAuth.py
