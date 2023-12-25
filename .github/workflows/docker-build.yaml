@@ -6,13 +6,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: root_password
+          MYSQL_DATABASE: data
+        ports:
+          - 3306:3306
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build the Docker image for authentication
-      run: docker build -t mentalni-skrbnik-auth:latest docker/authService
+    - name: docker build images
+      run: |
+        docker build -t mentalni-skrbnik-auth:latest docker/authService
+        docker build -t mentalni-skrbnik-web:latest docker/webService
+        docker build -t mentalni-skrbnik-msg:latest docker/msgService
 
-    - name: Build the Docker image for web hosting
-      run: docker build -t mentalni-skrbnik-auth:latest docker/webService
+    - name: Set up database
+      run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -proot_password -e "CREATE TABLE users (username VARCHAR(255) NOT NULL PRIMARY KEY, password VARCHAR(2048) NOT NULL, type VARCHAR(50));"
+    - name: Run tests
+      run: |
+        docker run -v ${PWD}/test:/test mentalni-skrbnik-auth:latest -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=localhost python /test/testAuth.py

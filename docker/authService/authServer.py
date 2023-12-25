@@ -90,12 +90,42 @@ class Register(Resource):
             return {'message': 'account with this username already exists'}, 401
         else:
             hpwd = hashlib.sha512(args['password'].encode()).hexdigest()
-            sql = "INSERT INTO users (username, password, type) VALUES (%s, %s, %d)"
-            values = (args['username'], hpwd, 0)
+            sql = "INSERT INTO users (username, password, type) VALUES (%s, %s, 0)"
+            values = (args['username'], hpwd)
             cursor.execute(sql, values)
             mydb.commit()
         mydb.disconnect()
         return {'message': 'Register successful'}, 201
+
+
+class Unregister(Resource):
+    @staticmethod
+    def post():
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', type=str, required=True)
+        parser.add_argument('password', type=str, required=True)
+        args = parser.parse_args()
+        mydb = mysql.connector.connect(
+            host=secret_host,
+            user=secret_uname,
+            password=secret_pass,
+            database=secret_database
+        )
+        cursor = mydb.cursor()
+        sql = "DELETE FROM users WHERE username = %s"
+        values = (args['username'],)
+        try:
+            cursor.execute(sql, values)
+            mydb.commit()
+            cursor.close()
+            mydb.close()
+            return {'message': 'unregister successful'}, 200
+        except mysql.connector.Error as err:
+            mydb.rollback()
+            cursor.close()
+            mydb.close()
+            return {'message': 'unregister unsuccessful'}, 400
+
 
 
 class UserInfo(Resource):
@@ -125,6 +155,7 @@ api.add_resource(Logout, '/logout')
 api.add_resource(Register, '/register')
 api.add_resource(UserInfo, '/userinfo')
 api.add_resource(ListUsers, '/listonlineusers')
+api.add_resource(Unregister, '/unregister')
 
 if __name__ == '__main__':
     app.run()
