@@ -8,10 +8,10 @@ def pass_test():
     return True
 
 
-def register_test():
+def register_test(username='value1', password='value2'):
     data = {
-        'username': 'value1',
-        'password': 'value2'
+        'username': username,
+        'password': password
     }
     headers = {
         'Content-Type': 'application/json'
@@ -24,10 +24,10 @@ def register_test():
     response = requests.post(url+'register', data=json.dumps(data), headers=headers)
     assert response.status_code == 401
 
-def unregister_test():
+def unregister_test(username='value1', password='value2'):
     data = {
-        'username': 'value1',
-        'password': 'value2'
+        'username': username,
+        'password': password
     }
     headers = {
         'Content-Type': 'application/json'
@@ -36,10 +36,10 @@ def unregister_test():
     assert response.status_code == 200
 
 
-def authenticate_test():
+def authenticate_test(username='value1', password='value2'):
     data = {
-        'username': 'value1',
-        'password': 'value2'
+        'username': username,
+        'password': password
     }
     headers = {
         'Content-Type': 'application/json'
