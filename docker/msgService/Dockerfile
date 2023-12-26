@@ -8,4 +8,4 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 COPY msgServer.py msgServer.py
 EXPOSE 4000
-CMD ["flask", "run"]
+CMD ["flask", "run", "--port=4000"]

@@ -18,8 +18,8 @@ secret_host = os.environ['DB_HOST']
 
 def verify(sender: str, sender_hash: str) -> bool:
     data = {"id": sender, "cookie": sender_hash}
-    url = "INSERT_ADDRESS:PORT/verif"
-    response = requests.post(url, json=data)
+    url = "http://172.17.0.2:5000/verif"
+    response = requests.post(url, json=data, headers={'Content-Type': 'application/json'})
     if response.status_code == 201:
         return True
     return False
@@ -60,7 +60,7 @@ class SendMessage(Resource):
     def post():
         parser = reqparse.RequestParser()
         parser.add_argument('sender', type=str, required=True)
-        parser.add_argument('target', type=str, required=True)
+        parser.add_argument('receiver', type=str, required=True)
         parser.add_argument('hash', type=str, required=True)
         parser.add_argument('message', type=str, required=True)
         args = parser.parse_args()
@@ -73,7 +73,7 @@ class SendMessage(Resource):
             )
             cursor = mydb.cursor()
             sql = "INSERT INTO messages (sender, receiver, message) VALUES (%s, %s, %s)"
-            values = (args['sender'], args['target'], args['message'])
+            values = (args['sender'], args['receiver'], args['message'])
             try:
                 cursor.execute(sql, values)
                 mydb.commit()
