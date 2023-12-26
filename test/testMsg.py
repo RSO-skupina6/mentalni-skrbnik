@@ -19,21 +19,21 @@ def basic_test():
         # user already exists
         ...
 
-    token = testAuth.authenticate_test('user1', 'user2')
+    token = testAuth.authenticate_test('user1', 'password1')
     data = {'sender': 'user1',
             'receiver': 'user2',
             'hash': token,
             'message': 'msg'
             }
 
-    req = requests.post(urlMsg + 'message', data=json.dumps(data))
-    assert req.status_code == 200, 'send message return error status'
-
     headers = {'Content-Type': 'application/json',
                'Authorization': token}
-    req = requests.post(urlMsg + 'messages/user1', data=json.dumps(data), headers=headers)
+
+    req = requests.post(urlMsg + 'message', data=json.dumps(data), headers=headers)
+    assert req.status_code == 200, 'send message return error status'
+    req = requests.get(urlMsg + 'messages/user1', headers=headers)
     assert req.status_code == 200, 'server returned non ok status code'
-    req = requests.post(urlMsg + 'messages/user2', data=json.dumps(data), headers=headers)
+    req = requests.get(urlMsg + 'messages/user2', headers=headers)
     assert req.status_code != 200, 'server returned sensitive data'
 
 

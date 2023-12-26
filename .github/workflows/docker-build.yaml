@@ -33,5 +33,7 @@ jobs:
 
     - name: Run tests
       run: |
-        docker run -v ${PWD}/test:/test -p 5000:5000 -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=172.17.0.1 --interactive mentalni-skrbnik-auth:latest sh -c "flask run & sleep 1 && python /test/testAuth.py"
-        docker run -v ${PWD}/test:/test -p 5000:5000 -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=172.17.0.1 --interactive mentalni-skrbnik-auth:latest sh -c "flask run & sleep 30" & docker run -v ${PWD}/test:/test -p 4000:4000 -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=172.17.0.1 --interactive mentalni-skrbnik-msg:latest sh -c "python msgService.py & sleep 2 && python /test/testMsg.py"
+        docker run -d -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=172.17.0.1 mentalni-skrbnik-auth:latest
+        docker run -d -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=172.17.0.1 mentalni-skrbnik-msg:latest
+        docker run -v ${PWD}/test:/test mentalni-skrbnik-auth:latest sh -c "sleep 1 && python /test/testAuth.py"
+        docker run -v ${PWD}/test:/test mentalni-skrbnik-msg:latest sh -c "sleep 1 && python /test/testMsg.py"

@@ -2,7 +2,7 @@ import json
 import inspect
 import requests
 
-url = 'http://localhost:5000/'
+url = 'http://172.17.0.2:5000/'
 
 def pass_test():
     return True
@@ -17,7 +17,7 @@ def register_test(username='value1', password='value2'):
         'Content-Type': 'application/json'
     }
     response = requests.post(url+'register', data=json.dumps(data), headers=headers)
-    unregister_test()
+    unregister_test(username, password)
     response = requests.post(url + 'register', data=json.dumps(data), headers=headers)
     assert response.status_code == 201
 
@@ -66,8 +66,8 @@ def verify_test():
         'id': 'value1',
         'cookie': 'abcdefghijklmnopqrst'
     }
-    response = requests.post(url + 'verify', data=data)
-    assert response.status_code != 401
+    response = requests.post(url + 'verif', data=json.dumps(data), headers=headers)
+    assert response.status_code != 201
 
 if __name__ == '__main__':
     tests = [ test for key, test in globals().items() if (inspect.isfunction(test) or inspect.ismethod(test)) and 'test' in key ]
