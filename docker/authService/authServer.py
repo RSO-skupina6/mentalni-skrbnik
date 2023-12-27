@@ -52,9 +52,9 @@ class Logout(Resource):
         args = parser.parse_args()
         if args['cookie'] in sessions and sessions[args['cookie']] == args['id']:
             del sessions[args['cookie']]
-            return True, 201
+            return {'message': 'logout successful credentials'}, 201
         else:
-            return False, 401
+            return {'message': 'logout unsuccessful'}, 401
 
 
 class Verify(Resource):
@@ -64,7 +64,7 @@ class Verify(Resource):
         parser.add_argument('id', type=str, required=True)
         parser.add_argument('cookie', type=str, required=True)
         args = parser.parse_args()
-        return (True, 201) if args['cookie'] in sessions and sessions[args['cookie']] == args['id'] else (False, 401)
+        return ({'message': 'valid credentials'}, 201) if args['cookie'] in sessions and sessions[args['cookie']] == args['id'] else ({'message': 'invalid credentials'}, 401)
 
 
 class Register(Resource):
