@@ -34,6 +34,6 @@ jobs:
     - name: Run tests
       run: |
         docker run -d -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=172.17.0.1 mentalni-skrbnik-auth:latest
-        docker run -d -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=172.17.0.1 mentalni-skrbnik-msg:latest
+        docker run -d -e DB_UNAME=root -e DB_PASS=root_password -e DB_HOST=172.17.0.1 -e AUTH_HOST=http://172.17.0.2:5000 mentalni-skrbnik-msg:latest
         docker run -v ${PWD}/test:/test mentalni-skrbnik-auth:latest sh -c "sleep 1 && python /test/testAuth.py"
         docker run -v ${PWD}/test:/test mentalni-skrbnik-msg:latest sh -c "sleep 1 && python /test/testMsg.py"

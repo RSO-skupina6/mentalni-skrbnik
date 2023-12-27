@@ -16,6 +16,8 @@ spec:
       - name: flask-msg-container
         image: gcr.io/semiotic-garden-407210/mentalni-skrbnik-msg:latest
         env:
+        - name: AUTH_HOST
+          value: http://34.118.27.140:6734/
         - name: DB_UNAME
           valueFrom:
             secretKeyRef:

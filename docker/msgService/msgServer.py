@@ -18,7 +18,7 @@ secret_host = os.environ['DB_HOST']
 
 def verify(sender: str, sender_hash: str) -> bool:
     data = {"id": sender, "cookie": sender_hash}
-    url = "http://172.17.0.2:5000/verif"
+    url = os.environ['AUTH_HOST'] + "/verif"
     response = requests.post(url, json=data, headers={'Content-Type': 'application/json'})
     if response.status_code == 201:
         return True
