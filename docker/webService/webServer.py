@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import requests
+import asyncio
 
 app = Flask(__name__)
 
@@ -8,23 +9,38 @@ auth_service_url = 'http://34.118.27.140:6734'
 
 joke_api_url = 'https://v2.jokeapi.dev/joke/Any'
 
+jokeapi_circuit_breaker = True
+async def async_set_retry(timeout):
+    await asyncio.sleep(timeout)
+    global jokeapi_circuit_breaker
+    jokeapi_circuit_breaker = True
 
 def get_joke() -> str:
-    response = requests.get(joke_api_url)
-    if response.status_code == 200:
-        data = response.json()
-        if data['type'] == 'single':
-            joke = data['joke']
-            joke = f"Here's a joke for you: {joke}"
-        elif data['type'] == 'twopart':
-            setup = data['setup']
-            delivery = data['delivery']
-            joke = f"Joke Setup: {setup}"
-            joke += f"Joke Delivery: {delivery}"
-        else:
-            joke = "No joke found"
+    global jokeapi_circuit_breaker
+    generic_joke = "It appears that jokeAPI developers are having a good time fixing this joke. Please visit later..."
+    if jokeapi_circuit_breaker:
+        try:
+            response = requests.get(joke_api_url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                if data['type'] == 'single':
+                    joke = data['joke']
+                    joke = f"Here's a joke for you: {joke}"
+                elif data['type'] == 'twopart':
+                    setup = data['setup']
+                    delivery = data['delivery']
+                    joke = f"Joke Setup: {setup}"
+                    joke += f"Joke Delivery: {delivery}"
+                else:
+                    joke = "No joke found"
+            else:
+                joke = generic_joke
+        except Exception:
+            jokeapi_circuit_breaker = False
+            asyncio.run(async_set_retry(60))
+            joke = generic_joke
     else:
-        joke = "Failed to fetch joke"
+        joke = generic_joke
     return joke
 
 
