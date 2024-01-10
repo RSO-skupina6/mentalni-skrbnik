@@ -6,6 +6,28 @@ app = Flask(__name__)
 
 auth_service_url = 'http://34.118.27.140:6734'
 
+joke_api_url = 'https://v2.jokeapi.dev/joke/Any'
+
+
+def get_joke() -> str:
+    response = requests.get(joke_api_url)
+    if response.status_code == 200:
+        data = response.json()
+        if data['type'] == 'single':
+            joke = data['joke']
+            joke = f"Here's a joke for you: {joke}"
+        elif data['type'] == 'twopart':
+            setup = data['setup']
+            delivery = data['delivery']
+            joke = f"Joke Setup: {setup}"
+            joke += f"Joke Delivery: {delivery}"
+        else:
+            joke = "No joke found"
+    else:
+        joke = "Failed to fetch joke"
+    return joke
+
+
 @app.route('/')
 def index():
     return render_template('login.html')
