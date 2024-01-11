@@ -38,6 +38,9 @@
                 const token = data.token;
                 if (token) {
                     sessionStorage.setItem('authToken', token); // Store the token
+                    const usernameFromForm = formData.get('username');
+                    // Save the username to sessionStorage
+                    sessionStorage.setItem('username', usernameFromForm);
                     window.location.href = '/dashboard'; // Redirect to the dashboard
                 } else {
                     console.error('Token not found in response');

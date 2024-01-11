@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Dashboard</title>
     <style>
-        /* Basic styling, modify as needed */
+        /* Basic styling */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -15,6 +15,14 @@
         }
         h1 {
             text-align: center;
+        }
+        #greetings {
+            text-align: right;
+            display: flex;
+            align-items: center;
+        }
+        #logoutButton {
+            margin-left: 10px;
         }
         .data-container {
             display: flex;
@@ -33,6 +41,10 @@
 </head>
 <body>
     <div class="container">
+        <div id="greetings">
+            <p id="userInfo">No user logged in</p>
+            <button id="logoutButton" onclick="logout()">Logout</button>
+        </div>
         <h1>Dashboard</h1>
         <div class="data-container">
             <div class="data-card" id="dataCard1">
@@ -45,16 +57,77 @@
                 <p>Value: <span id="listOfUsersResult">-</span></p>
                 <button onclick="getListOfUsers()">List Active Users</button>
             </div>
-            <!-- Add more data cards as needed -->
+            <div class="data-card" id="dataCardJoke">
+                <h2>Joke of the Day</h2>
+                <p><span id="jokeResult">Loading...</span></p>
+                <button onclick="getJoke()">Get Joke</button>
+            </div>
+            <div class="data-card" id="dataCardMessages">
+                <h2>Messages</h2>
+                <ul id="messagesList"></ul>
+                <button onclick="getMessages()">Get Messages</button>
+            </div>
+            <div class="data-card" id="dataCardSendMessage">
+                <input type="text" id="messageInput" placeholder="Type your message">
+                <input type="text" id="receiverInput" placeholder="Type receiver">
+                <button onclick="sendMessage()">Send Message</button>
+            </div>
+            <div class="data-card" id="dataCardGoogleSearch">
+                <h2>Google Search</h2>
+                <input type="text" id="searchQuery" placeholder="Enter your search query">
+                <button onclick="googleSearch()">Search</button>
+                <ul id="searchResults"></ul>
+            </div>
         </div>
     </div>
     <script>
+        const token = sessionStorage.getItem('authToken');
+        const username = sessionStorage.getItem('username');
+
+        if (!token) {
+            // No token found, hide greetings and show a message or redirect
+            // document.getElementById('greetings').style.display = 'none';
+            // Alternatively, you can redirect to the login page
+            window.location.href = '/login';
+        } else {
+            // Token found, show greetings and update user-related information
+            document.getElementById('userInfo').innerText = 'Welcome, ' + username;
+            document.getElementById('logoutButton').style.display = 'block';
+        }
+
+        function logout() {
+            if (!token) {
+                // Handle case where token is not available
+                console.error('Token not found');
+                return;
+            }
+            fetch('/logout', {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST',
+                body: JSON.stringify({
+                    id: username,
+                    cookie: token,
+                }),
+            })
+            .then(response => {
+                if (response.ok) {
+                    sessionStorage.removeItem('authToken');
+                    window.location.href = '/login';
+                } else {
+                    throw new Error('Login failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
         // Fetch data and update dashboard here
         // Example: Fetch data from API and update values in spans with IDs "dataValue1" and "dataValue2"
         // Replace this with your actual data retrieval logic
         // Example using dummy data:
         function getUserInfo() {
-            const token = sessionStorage.getItem('authToken');
             if (!token) {
                 // Handle case where token is not available
                 console.error('Token not found');
@@ -97,6 +170,119 @@
                 console.error('Error:', error);
             });
         }
+
+        function getJoke() {
+            fetch('/get-joke')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('jokeResult').innerText = data.joke;
+            })
+            .catch(error => {
+                console.error('Error fetching joke:', error);
+            });
+        }
+
+        function getMessages() {
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                console.error('Token not found');
+                return;
+            }
+
+            fetch(`/messages/${username}`, {
+                headers: {
+                    'Authorization': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messagesList = document.getElementById('messagesList');
+                messagesList.innerHTML = '';  // Clear previous messages
+
+                if (data && data.data && data.data.messages) {
+                    data.data.messages.forEach(message => {
+                        const listItem = document.createElement('li');
+                        listItem.innerText = `${message.sender}: ${message.message}`;
+                        messagesList.appendChild(listItem);
+                    });
+                }
+                // Handle other cases if needed
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    function sendMessage() {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            console.error('Token not found');
+            return;
+        }
+
+        const messageInput = document.getElementById('messageInput');
+        const receiverInput = document.getElementById('receiverInput');
+        const message = messageInput.value.trim();
+        const receiver = receiverInput.value.trim();
+
+        if (message === '') {
+            console.error('Message cannot be empty');
+            return;
+        }
+
+        if (receiver === '') {
+            console.error('Receiver cannot be empty');
+            return;
+        }
+
+        fetch('/message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify({
+                'sender': `${username}`,
+                'receiver': `${receiver}`,
+                'hash': `${token}`,
+                'message': message
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data) {
+                console.log('Message sent successfully');
+                // Optionally, refresh messages after sending
+                // getMessages();
+            } else {
+                console.error('Failed to send message');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    function googleSearch() {
+        const searchQuery = document.getElementById('searchQuery').value;
+
+        fetch(`/google-search?q=${searchQuery}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            const searchResultsList = document.getElementById('searchResults');
+            searchResultsList.innerHTML = '';  // Clear previous search results
+            data.results.forEach(result => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<a href="${result.link}" target="_blank">${result.title}</a>`;
+                searchResultsList.appendChild(listItem);
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
     </script>
 </body>
 </html>
