@@ -13,8 +13,19 @@ secret_pass = os.environ['DB_PASS']
 secret_database = "messages"
 secret_host = os.environ['DB_HOST']
 
-client = logging.Client()
-logger = client.logger('flask_message_service')
+class Logger:
+    """
+    This is stub class used in tests, for logging purposes.
+    """
+    def log_text(self, message, *args, **kwargs):
+        print(message)
+
+if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
+    client = logging.Client()
+    logger = client.logger('flask_message_service')
+else:
+    logger = Logger()
+
 
 def verify(sender: str, sender_hash: str) -> bool:
     data = {"id": sender, "cookie": sender_hash}

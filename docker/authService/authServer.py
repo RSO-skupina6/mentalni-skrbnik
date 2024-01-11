@@ -14,8 +14,18 @@ secret_pass = os.environ['DB_PASS']
 secret_database = "data"
 secret_host = os.environ['DB_HOST']
 
-client = logging.Client()
-logger = client.logger('flask_auth_service')
+class Logger:
+    """
+    This is stub class used in tests, for logging purposes.
+    """
+    def log_text(self, message, *args, **kwargs):
+        print(message)
+
+if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
+    client = logging.Client()
+    logger = client.logger('flask_auth_service')
+else:
+    logger = Logger()
 
 sessions = dict()
 
