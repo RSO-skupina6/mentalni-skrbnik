@@ -1,0 +1,43 @@
+@startuml
+package "Authentication Service" {
+    Rectangle "POST - register\n{\n  username: str,\n  password: str\n}" as register
+    Rectangle "POST - auth\n{\n  username: str,\n  password: str\n}" as auth
+    Rectangle "POST - unregister\n{\n  username: str,\n  password: str\n}" as unregister
+    Rectangle "POST - verify\n{\n  username: str,\n  token: str\n}" as verify
+    Rectangle "POST - logout\n{\n  username: str,\n  token: str\n}" as logout
+    Rectangle "GET  - userinfo\n(\n  Authorization: hash\n)" as userinfo
+}
+
+package "Message Service" {
+    Rectangle "GET  - messages\n(\n  Authorization: hash\n)" as userMsgs
+    Rectangle "POST - message/<username>\n{\n  sender: userid,\n  receiver: userid,\n  token: hash,\n  message: str\n}" as sendMessage
+}
+
+package "Web Service" {
+}
+
+package "Forum Service" {
+}
+
+database "Database" {
+    [users\n |username\n |hash\n |type] as users
+    [messages\n |sender\n |receiver\n |message\n |timestamp] as messages
+}
+
+actor "Google API" as googleApi
+actor "JokeAPI" as jokeApi
+
+[Authentication Service] --> [users] : SQL
+[Message Service] --> [messages] : SQL
+[Message Service] --> [verify]
+[Web Service] --> [Forum Service]
+[Web Service] --> jokeApi
+[Web Service] --> register
+[Web Service] --> auth
+[Web Service] --> logout
+[Web Service] --> userinfo
+[Web Service] --> unregister
+[Web Service] --> userMsgs
+[Web Service] --> sendMessage
+
+@enduml
