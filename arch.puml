@@ -14,14 +14,30 @@ package "Message Service" {
 }
 
 package "Web Service" {
+    Rectangle "Login/out page"
+    Rectangle "User info page"
+    Rectangle "Active users page"
+    Rectangle "Send message page"
+    Rectangle "List messages page"
+    Rectangle "Search page"
 }
 
 package "Forum Service" {
+    Rectangle "POST - /create_post" as createPost
+    Rectangle "DELETE - /delete_post/<post_id>" as deletePost
+    Rectangle "PUT - /edit_post/<post_id>" as editPost
+    Rectangle "POST - /create_comment/<comment_id>" as createComment
+    Rectangle "DELETE - /delete_comment/<comment_id>" as deleteComment
+    Rectangle "PUT - /edit_comment/<comment_id>" as editComment
+    Rectangle "GET - /get_all_posts" as getPosts
+    Rectangle "GET - /get_all_comments" as getComments
 }
 
-database "Database" {
-    [users\n |username\n |hash\n |type] as users
-    [messages\n |sender\n |receiver\n |message\n |timestamp] as messages
+database "Databases" {
+    [Data:\nusers\n |username\n |hash\n |type] as users
+    [Messages:\nmessages\n |sender\n |receiver\n |message\n |timestamp] as messages
+    [Forums:\nposts] as posts
+    [Forums:\ncomments] as comments
 }
 
 actor "Google API" as googleApi
@@ -29,15 +45,18 @@ actor "JokeAPI" as jokeApi
 
 [Authentication Service] --> [users] : SQL
 [Message Service] --> [messages] : SQL
-[Message Service] --> [verify]
+[Message Service] --> [verify] : REST
 [Web Service] --> [Forum Service]
-[Web Service] --> jokeApi
-[Web Service] --> register
-[Web Service] --> auth
-[Web Service] --> logout
-[Web Service] --> userinfo
-[Web Service] --> unregister
-[Web Service] --> userMsgs
-[Web Service] --> sendMessage
+[Web Service] --> jokeApi : REST
+[Web Service] --> register : REST
+[Web Service] --> auth : REST
+[Web Service] --> logout : REST
+[Web Service] --> userinfo : REST
+[Web Service] --> unregister : REST
+[Web Service] --> userMsgs : REST
+[Web Service] --> sendMessage : REST
+[Forum Service] --> posts : CRUD
+[Forum Service] --> comments : CRUD
+"Search page" --> googleApi : REST
 
 @enduml
