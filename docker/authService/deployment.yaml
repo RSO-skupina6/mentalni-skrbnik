@@ -45,7 +45,12 @@ spec:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /etc/gcp/sa_credentials.json
         ports:
-        - containerPort: 5000
+          - containerPort: 5000
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+
 
 
 ---

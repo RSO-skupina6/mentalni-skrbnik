@@ -110,8 +110,14 @@ class SendMessage(Resource):
                 return {'message': 'db error'}, 403
         return {'message': 'unauthorized'}, 400
 
+class Health(Resource):
+    @staticmethod
+    def get():
+        return {'message': 'alive'}, 200
+
 
 api.add_resource(SendMessage, '/message')
+api.add_resource(Health, '/healthz')
 api.add_resource(GetMessages, '/messages/<string:user>')
 
 if __name__ == '__main__':

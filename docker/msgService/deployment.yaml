@@ -48,6 +48,10 @@ spec:
           value: /etc/gcp/sa_credentials.json
         ports:
         - containerPort: 4000
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 4000
 
 ---
 apiVersion: v1

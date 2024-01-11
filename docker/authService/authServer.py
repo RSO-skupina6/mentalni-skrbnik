@@ -180,6 +180,12 @@ class ListUsers(Resource):
             return {'message': 'token mismatched, make sure you are logged in'}, 401
 
 
+class Health(Resource):
+    @staticmethod
+    def get():
+        return {'message': 'alive'}, 200
+
+
 api.add_resource(Authentication, '/auth')
 api.add_resource(Verify, '/verif')
 api.add_resource(Logout, '/logout')
@@ -187,6 +193,7 @@ api.add_resource(Register, '/register')
 api.add_resource(UserInfo, '/userinfo')
 api.add_resource(ListUsers, '/listonlineusers')
 api.add_resource(Unregister, '/unregister')
+api.add_resource(Health, '/healthz')
 
 if __name__ == '__main__':
     logger.log_text('auth service startup.', severity='INFO')
