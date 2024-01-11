@@ -1,9 +1,7 @@
 #!/usr/bin/python3
-import hashlib
-import time
-
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
+from google.cloud import logging
 import requests
 import mysql.connector
 import os
@@ -15,6 +13,8 @@ secret_pass = os.environ['DB_PASS']
 secret_database = "messages"
 secret_host = os.environ['DB_HOST']
 
+client = logging.Client()
+logger = client.logger('flask_message_service')
 
 def verify(sender: str, sender_hash: str) -> bool:
     data = {"id": sender, "cookie": sender_hash}
@@ -29,12 +29,17 @@ class GetMessages(Resource):
     def get(user):
         token = request.headers.get('Authorization')
         if verify(user, token):
-            mydb = mysql.connector.connect(
-                host=secret_host,
-                user=secret_uname,
-                password=secret_pass,
-                database=secret_database
-            )
+            try:
+                mydb = mysql.connector.connect(
+                    host=secret_host,
+                    user=secret_uname,
+                    password=secret_pass,
+                    database=secret_database,
+                    connection_timeout=10
+                )
+            except mysql.connector.Error as err:
+                logger.log_text(f'Access to database failed with: {err}', severity='ERROR')
+                return {'message': 'Internal server error, we apologise for the inconvenience'}, 501
             cursor = mydb.cursor()
             sql = "SELECT * FROM messages WHERE receiver = %s"
             values = (user,)
@@ -65,12 +70,17 @@ class SendMessage(Resource):
         parser.add_argument('message', type=str, required=True)
         args = parser.parse_args()
         if verify(args['sender'], args['hash']):
-            mydb = mysql.connector.connect(
-                host=secret_host,
-                user=secret_uname,
-                password=secret_pass,
-                database=secret_database
-            )
+            try:
+                mydb = mysql.connector.connect(
+                    host=secret_host,
+                    user=secret_uname,
+                    password=secret_pass,
+                    database=secret_database,
+                    connection_timeout=10
+                )
+            except mysql.connector.Error as err:
+                logger.log_text(f'Access to database failed with: {err}', severity='ERROR')
+                return {'message': 'Internal server error, we apologise for the inconvenience'}, 501
             cursor = mydb.cursor()
             sql = "INSERT INTO messages (sender, receiver, message) VALUES (%s, %s, %s)"
             values = (args['sender'], args['receiver'], args['message'])
@@ -80,19 +90,20 @@ class SendMessage(Resource):
                 cursor.close()
                 mydb.close()
                 # TODO: notify other party
-                return True, 200
+                return {'message': 'Ok'}, 200
             except mysql.connector.Error as err:
                 print(f"Error: {err}")
                 mydb.rollback()
                 cursor.close()
                 mydb.close()
-                return False, 400
-        return False, 401
+                return {'message': 'db error'}, 403
+        return {'message': 'unauthorized'}, 400
 
 
 api.add_resource(SendMessage, '/message')
 api.add_resource(GetMessages, '/messages/<string:user>')
 
 if __name__ == '__main__':
+    logger.log_text('message service startup.', severity='INFO')
     app.run(port=4000)
 

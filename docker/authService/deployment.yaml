@@ -12,9 +12,20 @@ spec:
       labels:
         app: flask-auth
     spec:
+      volumes:
+        - name: service-account-credentials-volume
+          secret:
+            secretName: service-account-credentials
+            items:
+              - key: sa_json
+                path: sa_credentials.json
       containers:
       - name: flask-auth-container
         image: gcr.io/semiotic-garden-407210/mentalni-skrbnik-auth:latest
+        volumeMounts:
+          - name: service-account-credentials-volume
+            mountPath: /etc/gcp
+            readOnly: true
         env:
         - name: DB_UNAME
           valueFrom:
@@ -31,6 +42,8 @@ spec:
             secretKeyRef:
               name: db-host
               key: db-host
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /etc/gcp/sa_credentials.json
         ports:
         - containerPort: 5000
 

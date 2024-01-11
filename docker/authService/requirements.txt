@@ -2,3 +2,4 @@ flask
 flask_restful
 mysql-connector-python
 requests
+google-cloud-logging

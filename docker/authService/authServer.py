@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import hashlib
 import time
-
+from google.cloud import logging
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
 import mysql.connector
@@ -14,6 +14,9 @@ secret_pass = os.environ['DB_PASS']
 secret_database = "data"
 secret_host = os.environ['DB_HOST']
 
+client = logging.Client()
+logger = client.logger('flask_auth_service')
+
 sessions = dict()
 
 
@@ -24,24 +27,29 @@ class Authentication(Resource):
         parser.add_argument('username', type=str, required=True)
         parser.add_argument('password', type=str, required=True)
         args = parser.parse_args()
-
-        mydb = mysql.connector.connect(
-            host=secret_host,
-            user=secret_uname,
-            password=secret_pass,
-            database=secret_database
-        )
+        try:
+            mydb = mysql.connector.connect(
+                host=secret_host,
+                user=secret_uname,
+                password=secret_pass,
+                database=secret_database,
+                connection_timeout=10
+            )
+        except mysql.connector.Error as err:
+            logger.log_text(f'Access to database failed with: {err}', severity='ERROR')
+            return {'message': 'Internal server error, we apologise for the inconvenience'}, 501
 
         cursor = mydb.cursor()
         cursor.execute(f"SELECT * FROM users WHERE username = '{args['username']}'")
         row = cursor.fetchone()
         mydb.disconnect()
         hpwd = hashlib.sha512(args['password'].encode()).hexdigest()
-        if hpwd == row[1]:
+        if row is not None and hpwd == row[1]:
             cookie = hashlib.sha256((args['username']+args['password']+str(time.time())).encode('utf-8')).hexdigest()
             sessions[cookie] = args['username']
             return {'message': 'Login Successful', 'token': cookie}, 201
         return {'message': 'invalid credentials'}, 401
+
 
 
 class Logout(Resource):
@@ -74,12 +82,18 @@ class Register(Resource):
         parser.add_argument('username', type=str, required=True)
         parser.add_argument('password', type=str, required=True)
         args = parser.parse_args()
-        mydb = mysql.connector.connect(
-            host=secret_host,
-            user=secret_uname,
-            password=secret_pass,
-            database=secret_database
-        )
+        try:
+            mydb = mysql.connector.connect(
+                host=secret_host,
+                user=secret_uname,
+                password=secret_pass,
+                database=secret_database,
+                connection_timeout=10
+            )
+        except mysql.connector.Error as err:
+            logger.log_text(f'Access to database failed with: {err}', severity='ERROR')
+            return {'message': 'Internal server error, we apologise for the inconvenience'}, 501
+
         cursor = mydb.cursor()
         sql = "SELECT EXISTS(SELECT 1 FROM users WHERE username = %s) AS id_exists;"
         values = (args['username'],)
@@ -87,6 +101,7 @@ class Register(Resource):
         row = cursor.fetchone()
         if row[0] == 1:
             mydb.disconnect()
+            logger.log_text(f'User: {values} tried to register again.', severity='INFO')
             return {'message': 'account with this username already exists'}, 401
         else:
             hpwd = hashlib.sha512(args['password'].encode()).hexdigest()
@@ -98,6 +113,7 @@ class Register(Resource):
         return {'message': 'Register successful'}, 201
 
 
+
 class Unregister(Resource):
     @staticmethod
     def post():
@@ -105,12 +121,17 @@ class Unregister(Resource):
         parser.add_argument('username', type=str, required=True)
         parser.add_argument('password', type=str, required=True)
         args = parser.parse_args()
-        mydb = mysql.connector.connect(
-            host=secret_host,
-            user=secret_uname,
-            password=secret_pass,
-            database=secret_database
-        )
+        try:
+            mydb = mysql.connector.connect(
+                host=secret_host,
+                user=secret_uname,
+                password=secret_pass,
+                database=secret_database,
+                connection_timeout=10
+            )
+        except mysql.connector.Error as err:
+            logger.log_text(f'Access to database failed with: {err}', severity='ERROR')
+            return {'message': 'Internal server error, we apologise for the inconvenience'}, 501
         cursor = mydb.cursor()
         sql = "DELETE FROM users WHERE username = %s"
         values = (args['username'],)
@@ -158,4 +179,5 @@ api.add_resource(ListUsers, '/listonlineusers')
 api.add_resource(Unregister, '/unregister')
 
 if __name__ == '__main__':
+    logger.log_text('auth service startup.', severity='INFO')
     app.run()
