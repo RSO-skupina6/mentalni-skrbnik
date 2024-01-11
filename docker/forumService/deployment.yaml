@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-forums
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-forums
+  template:
+    metadata:
+      labels:
+        app: flask-forums
+    spec:
+      containers:
+      - name: flask-forums-container
+        image: gcr.io/mentalni-skrbnik-forum/:latest
+        env:
+        - name: DB_UNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-user
+              key: db-username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: db-pass
+              key: db-password
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-host
+              key: db-host
+        ports:
+        - containerPort: 3000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-forums-service
+spec:
+  selector:
+    app: flask-forums
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: LoadBalancer

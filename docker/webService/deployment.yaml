@@ -15,9 +15,19 @@ spec:
       containers:
       - name: flask-web-container
         image: gcr.io/semiotic-garden-407210/mentalni-skrbnik-web:latest
+         env:
+        - name: SEARCH_ENGINE_ID
+          valueFrom:
+            secretKeyRef:
+              name: search-engine-id
+              key: search-engine-id
+        - name: SEARCH_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: search-api-key
+              key: search-api-key
         ports:
         - containerPort: 443
-
 
 ---
 apiVersion: v1

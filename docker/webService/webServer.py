@@ -1,11 +1,17 @@
 #!/usr/bin/python3
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask_restful import Api, Resource, reqparse
 import requests
 import asyncio
+import os
 
 app = Flask(__name__)
 
 auth_service_url = 'http://34.118.27.140:6734'
+msg_service_url = 'http://34.116.192.107:8573'
+
+secret_engine_id = os.environ['SEARCH_ENGINE_ID']
+secret_api_key = os.environ['SEARCH_API_KEY']
 
 joke_api_url = 'https://v2.jokeapi.dev/joke/Any'
 
@@ -70,6 +76,26 @@ def login():
 
     return render_template('login.html')
 
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    parser = reqparse.RequestParser()
+    parser.add_argument('id', type=str, required=True)
+    parser.add_argument('cookie', type=str, required=True)
+    args = parser.parse_args()
+    id = args['id']
+    cookie = args['cookie']
+    
+    # Send logout request to authService
+    logout_data = {'id': id, 'cookie': cookie}
+    response = requests.post(f'{auth_service_url}/logout', json=logout_data, headers={'Content-Type': 'application/json'})
+    
+    if response.status_code == 201:
+        # Logout successful
+        return 'Logout successful.', 201
+    # Logout failed
+    return 'Logout unsuccessful.', 401
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -117,6 +143,71 @@ def get_active_users():
         return jsonify(response.json()), 200
     
     return jsonify({'message': 'Error retrieving active users'}), 500
+
+@app.route('/get-joke', methods=['GET'])
+def get_joke_endpoint():
+    joke = get_joke()  # Call your function to retrieve a joke
+    return jsonify({'joke': joke})
+
+@app.route('/messages/<username>', methods=['GET'])
+def get_messages(username):
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Authorization token missing'}), 401
+    response = requests.get(f'{msg_service_url}/messages/{username}', headers={'Authorization': token})
+    
+    if response.status_code == 200:
+        return jsonify(response.json()), 200
+    
+    return jsonify({'message': 'Error retrieving messages'}), 500
+
+from flask import request, jsonify
+
+@app.route('/message', methods=['POST'])
+def send_message():
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Authorization token missing'}), 401
+    
+    data = request.get_json()
+
+    sender = data.get('sender')
+    receiver = data.get('receiver')
+    message = data.get('message')
+
+    if not (sender and receiver and message):
+        return jsonify({'message': 'Missing sender, receiver, or message'}), 400
+
+    # Assuming the 'hash' is not required and is generated on the backend
+    response = requests.post(
+        f'{msg_service_url}/message',
+        json={'sender': sender, 'receiver': receiver, 'message': message, 'hash': token},
+        headers={'Authorization': token}
+    )
+    
+    if response.status_code == 200:
+        return jsonify(response.json()), 200
+    
+    return jsonify({'message': 'Error sending message'}), 500
+
+@app.route('/google-search', methods=['GET'])
+def google_search():
+    query = request.args.get('q')
+    if not query:
+        return jsonify({'message': 'Missing search query'}), 400
+
+    api_key = secret_api_key
+    cx = secret_engine_id
+
+    url = f'https://www.googleapis.com/customsearch/v1?q={query}&key={api_key}&cx={cx}'
+
+    response = requests.get(url)
+    if response.status_code == 200:
+        search_results = response.json().get('items', [])
+        return jsonify({'results': search_results}), 200
+    else:
+        return jsonify({'message': 'Error performing Google search'}), response.status_code
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=443)
