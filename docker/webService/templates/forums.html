@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum UI</title>
+</head>
+<body>
+
+  <h1>Forum Posts</h1>
+
+  <div id="posts-container"></div>
+
+  <script>
+    // Function to fetch and display posts
+    function fetchAndDisplayPosts() {
+      const postsContainer = document.getElementById('posts-container');
+      postsContainer.innerHTML = ''; // Clear previous content
+
+
+      fetch('/get_all_posts')
+        .then(response => response.json())
+        .then(data => {
+          const posts = data.posts || [];
+
+          posts.forEach(post => {
+            const postElement = document.createElement('div');
+            postElement.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p>`;
+
+            // Fetch and display comments for each post
+            fetchAndDisplayComments(post.id, postElement);
+
+            postsContainer.appendChild(postElement);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching posts:', error);
+        });
+    }
+
+    // Function to fetch and display comments for a post
+    function fetchAndDisplayComments(postId, postElement) {
+
+      fetch(`/get_all_comments/${postId}`)
+        .then(response => response.json())
+        .then(data => {
+          const comments = data.comments || [];
+
+          const commentsList = document.createElement('ul');
+          comments.forEach(comment => {
+            const commentItem = document.createElement('li');
+            commentItem.textContent = comment.content;
+            commentsList.appendChild(commentItem);
+          });
+
+          postElement.appendChild(commentsList);
+        })
+        .catch(error => {
+          console.error(`Error fetching comments for post ${postId}:`, error);
+        });
+    }
+
+    // Initial fetch and display posts
+    fetchAndDisplayPosts();
+  </script>
+
+</body>
+</html>

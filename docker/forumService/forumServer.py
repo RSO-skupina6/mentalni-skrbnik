@@ -5,8 +5,8 @@ import mysql.connector
 app = Flask(__name__)
 
 db_host = os.environ['DB_HOST']
-db_username = os.environ['DB_USERNAME']
-db_password = os.environ['DB_PASSWORD']
+db_username = os.environ['DB_UNAME']
+db_password = os.environ['DB_PASS']
 db_name = "posts"
 
 try:
@@ -34,7 +34,8 @@ def create_post():
         mydb.commit()
         return jsonify({'message': 'Post created successfully'}), 201
     else:
-        return jsonify({'message': 'Title and content are required'}), 400
+        return jsonify({'message': 'Title is required'}), 400
+
 
 # Delete a post
 @app.route('/delete_post/<int:post_id>', methods=['DELETE'])
@@ -59,7 +60,7 @@ def create_comment(post_id):
     username = data.get('username')
     content = data.get('content')
 
-    cursor.execute("INSERT INTO comments (username, content, forum_id) VALUES (%s, %s, %s)", (username, content, post_id))
+    cursor.execute("INSERT INTO comments (username, content, post_id) VALUES (%s, %s, %s)", (username, content, post_id))
     mydb.commit()
     return jsonify({'message': 'Comment created successfully'}), 201
 
@@ -97,4 +98,4 @@ def get_all_comments(post_id):
     return jsonify({'comments': comment_list}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=3000)

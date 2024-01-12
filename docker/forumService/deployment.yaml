@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: flask-forums-container
-        image: gcr.io/mentalni-skrbnik-forum/:latest
+        image: gcr.io/semiotic-garden-407210/mentalni-skrbnik-forum:latest
         env:
         - name: DB_UNAME
           valueFrom:

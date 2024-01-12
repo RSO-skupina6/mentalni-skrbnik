@@ -15,7 +15,7 @@ spec:
       containers:
       - name: flask-web-container
         image: gcr.io/semiotic-garden-407210/mentalni-skrbnik-web:latest
-         env:
+        env:
         - name: SEARCH_ENGINE_ID
           valueFrom:
             secretKeyRef:

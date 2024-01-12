@@ -9,6 +9,7 @@ app = Flask(__name__)
 
 auth_service_url = 'http://34.118.27.140:6734'
 msg_service_url = 'http://34.116.192.107:8573'
+forum_service_url = 'http://34.118.235.149:3000'
 
 secret_engine_id = os.environ['SEARCH_ENGINE_ID']
 secret_api_key = os.environ['SEARCH_API_KEY']
@@ -118,6 +119,10 @@ def register():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route('/forums')
+def dashboard():
+    return render_template('forums.html')
+
 @app.route('/user-info', methods=['GET'])
 def get_user_info():
     token = request.headers.get('Authorization')
@@ -200,7 +205,7 @@ def google_search():
     cx = secret_engine_id
 
     url = f'https://www.googleapis.com/customsearch/v1?q={query}&key={api_key}&cx={cx}'
-
+    print(url)
     response = requests.get(url)
     if response.status_code == 200:
         search_results = response.json().get('items', [])

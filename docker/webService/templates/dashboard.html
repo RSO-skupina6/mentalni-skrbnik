@@ -68,8 +68,8 @@
                 <button onclick="getMessages()">Get Messages</button>
             </div>
             <div class="data-card" id="dataCardSendMessage">
-                <input type="text" id="messageInput" placeholder="Type your message">
                 <input type="text" id="receiverInput" placeholder="Type receiver">
+                <input type="text" id="messageInput" placeholder="Type your message">
                 <button onclick="sendMessage()">Send Message</button>
             </div>
             <div class="data-card" id="dataCardGoogleSearch">
@@ -79,6 +79,7 @@
                 <ul id="searchResults"></ul>
             </div>
         </div>
+        <button onclick="redirectToForums()">Go to Forums</button>
     </div>
     <script>
         const token = sessionStorage.getItem('authToken');
@@ -93,6 +94,9 @@
             // Token found, show greetings and update user-related information
             document.getElementById('userInfo').innerText = 'Welcome, ' + username;
             document.getElementById('logoutButton').style.display = 'block';
+        }
+        function redirectToForums() {
+            window.location.href = 'forums.html';
         }
 
         function logout() {
