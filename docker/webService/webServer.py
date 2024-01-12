@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 auth_service_url = 'http://34.118.27.140:6734'
 msg_service_url = 'http://34.116.192.107:8573'
-forum_service_url = 'http://34.118.235.149:3000'
+forum_service_url = 'http://34.116.254.116:3000'
 
 secret_engine_id = os.environ['SEARCH_ENGINE_ID']
 secret_api_key = os.environ['SEARCH_API_KEY']

@@ -15,6 +15,7 @@ spec:
       containers:
       - name: flask-forums-container
         image: gcr.io/semiotic-garden-407210/mentalni-skrbnik-forum:latest
+        imagePullPolicy: Always
         env:
         - name: DB_UNAME
           valueFrom:
