@@ -120,7 +120,7 @@ def dashboard():
     return render_template('dashboard.html')
 
 @app.route('/forums')
-def dashboard():
+def forums():
     return render_template('forums.html')
 
 @app.route('/user-info', methods=['GET'])
